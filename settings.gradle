@@ -1,3 +1,5 @@
+include ':lib_anotations'
+include ':lib_compiler'
 include ':lib_http'
 include ':app'
 rootProject.name = "testLib"

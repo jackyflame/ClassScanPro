@@ -1,8 +1,11 @@
 package com.jf.testlib.utils;
 
 import android.content.Context;
+import android.os.Build;
 
-import com.jf.testlib.interfaces.IHandler;
+import com.jf.anotations.Action;
+import com.jf.anotations.Skill;
+import com.jf.base.IActionHandler;
 
 import java.io.File;
 import java.io.IOException;
@@ -55,13 +58,29 @@ public class ClassLoaderUtil {
 
     public void searchCLass(Context context) throws Exception {
         //包名
-        String targetPackName = "com.jf.testlib.ui";
+        String targetPackName = "com.jf.testlib.adapter";
         List<String> classNameList = getClassName(context,targetPackName);
         //这个时候我们已经得到了指定包下所有的类的绝对路径了。我们现在利用这些绝对路径和java的反射机制得到他们的类对象
         int i = 0;
         for (String s : classNameList) {
             Class<?> cls = Class.forName(s);
-            if(hasImplementsInterface(cls,IHandler.class)){
+            if(cls.isAnnotationPresent(Skill.class)){
+                Skill skillAno = cls.getAnnotation(Skill.class);
+                System.out.println(">>> Skill-Name:" + skillAno.skillName() + " from Class:" + cls);
+            }
+            if(cls.isAnnotationPresent(Action.class)){
+                Action actionAno = cls.getAnnotation(Action.class);
+                System.out.println(">>> Action-array from Class:" + cls);
+                if(actionAno.actions() != null && actionAno.actions().length > 0){
+                    for (String action:actionAno.actions()) {
+                        System.out.println(action);
+                    }
+                }else{
+                    System.out.println("empty-actions");
+                }
+            }
+            //if(hasImplementsInterface(cls,IHandler.class)){
+            if(IActionHandler.class.isAssignableFrom(cls)){
                 System.out.println(">>> index:"+(i++) + ">>> Class:"+cls);
             }
         }
