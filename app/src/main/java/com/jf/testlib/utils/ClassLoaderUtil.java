@@ -1,14 +1,21 @@
 package com.jf.testlib.utils;
 
 import android.content.Context;
-import android.os.Build;
 
 import com.jf.anotations.Action;
 import com.jf.anotations.Skill;
-import com.jf.base.IActionHandler;
+import com.jf.base.AbsSkillHandler;
+import com.jf.base.EmptyProvider;
+import com.jf.interfaces.IActionHandler;
+import com.jf.interfaces.IProvider;
+import com.jf.interfaces.ISkillHandler;
+import com.jf.testlib.adapter.SkillManager;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
@@ -66,7 +73,7 @@ public class ClassLoaderUtil {
             Class<?> cls = Class.forName(s);
             if(cls.isAnnotationPresent(Skill.class)){
                 Skill skillAno = cls.getAnnotation(Skill.class);
-                System.out.println(">>> Skill-Name:" + skillAno.skillName() + " from Class:" + cls);
+                System.out.println(">>> Skill-Name:" + skillAno.value() + " from Class:" + cls);
             }
             if(cls.isAnnotationPresent(Action.class)){
                 Action actionAno = cls.getAnnotation(Action.class);
@@ -84,6 +91,99 @@ public class ClassLoaderUtil {
                 System.out.println(">>> index:"+(i++) + ">>> Class:"+cls);
             }
         }
+    }
+
+    public void scanSkillToPool(Context context, String targetPackName, SkillManager skillManager) throws Exception {
+        //包名
+        List<String> classNameList = getClassName(context,targetPackName);
+        //扫描
+        for (String clzName : classNameList) {
+            Class<?> cls = Class.forName(clzName);
+            if(ISkillHandler.class.isAssignableFrom(cls)){
+                instanceSkillHandler(skillManager, (Class<? extends ISkillHandler>) cls);
+            }else if(IActionHandler.class.isAssignableFrom(cls)){
+                instanceActionHandler(skillManager,(Class<? extends IActionHandler>) cls);
+            }
+        }
+    }
+
+    private void instanceSkillHandler(SkillManager skillManager, Class<? extends ISkillHandler> clzSkill) throws Exception {
+        if(clzSkill.isAnnotationPresent(Skill.class)){
+            Skill skillAno = clzSkill.getAnnotation(Skill.class);
+            System.out.println(">>> Skill-Name:" + skillAno.value() + " from Class:" + clzSkill);
+            ISkillHandler newSkill = instanceByGetInstance(clzSkill);
+            if(newSkill == null){
+                newSkill = clzSkill.newInstance();
+            }
+            skillManager.addSkillHandler(skillAno.value(), newSkill);
+        }
+    }
+
+    private void instanceActionHandler(SkillManager skillManager, Class<? extends IActionHandler> clzAH) throws Exception {
+        if(clzAH.isAnnotationPresent(Action.class)){
+            Action actionAno = clzAH.getAnnotation(Action.class);
+            System.out.println(">>> Action-array from Class:" + clzAH);
+            if(actionAno.actions() != null && actionAno.actions().length > 0){
+                ISkillHandler skillHandler = skillManager.getSkillHandlerByType(actionAno.skill());
+                if(skillHandler == null){
+                    return;
+                }
+                IActionHandler newAH = null;
+                if(actionAno.provider() != null && actionAno.provider() != EmptyProvider.class){
+                    Class<? extends IProvider> clzProvider = actionAno.provider();
+                    newAH = instanceAHByProvider(clzProvider);
+                }else{
+                    newAH = clzAH.newInstance();
+                }
+                if(newAH == null){
+                    System.out.println("IActionHandler for " + clzAH + " instance error!");
+                    return;
+                }
+                for (String action:actionAno.actions()) {
+                    skillHandler.addActionHandler(action, newAH);
+                }
+            }else{
+                System.out.println("empty-actions");
+            }
+        }
+    }
+
+    private IActionHandler instanceAHByProvider(Class<? extends IProvider> clzProvider){
+        if(clzProvider != EmptyProvider.class){
+            IProvider provider = instanceByGetInstance(clzProvider);
+            if(provider == null){
+                try {
+                    provider = clzProvider.newInstance();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            if(provider != null){
+                return provider.create();
+            }
+        }
+        return null;
+    }
+
+    private <T> T instanceByGetInstance(Class<T> clz){
+        Method method = null;
+        T instance = null;
+        try {
+            method = clz.getDeclaredMethod("getInstance");
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        }
+        if(method != null && Modifier.isStatic(method.getModifiers()) && method.getReturnType() == clz){
+            try {
+                Object rst = method.invoke(null);
+                if(rst != null){
+                    instance = (T) rst;
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return instance;
     }
 
     private boolean hasImplementsInterface(Class<?> target,Class<?> itf) {

@@ -9,7 +9,9 @@ import com.jf.base.AbsSkillHandler;
  * @author: github.com/jackyflame
  * @Date: 2021/7/6
  */
-@Skill(skillName = "日历日程")
+@Skill("日历日程")
 public class CalendarSkillHandler extends AbsSkillHandler {
+
+
 
 }

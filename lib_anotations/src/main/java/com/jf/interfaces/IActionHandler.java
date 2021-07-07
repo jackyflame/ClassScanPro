@@ -1,4 +1,4 @@
-package com.jf.base;
+package com.jf.interfaces;
 
 /**
  * @Class: IActionHandler
@@ -7,4 +7,6 @@ package com.jf.base;
  * @Date: 2021/7/6
  */
 public interface IActionHandler {
+
+
 }

@@ -1,7 +1,7 @@
 package com.jf.testlib.adapter.calendar.actions;
 
 import com.jf.anotations.Action;
-import com.jf.base.IActionHandler;
+import com.jf.interfaces.IActionHandler;
 
 /**
  * @Class: ViewAction
