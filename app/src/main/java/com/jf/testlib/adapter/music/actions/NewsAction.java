@@ -1,6 +1,8 @@
 package com.jf.testlib.adapter.music.actions;
 
 import com.jf.anotations.Action;
+import com.jf.interfaces.IActionHandler;
+import com.jf.testlib.adapter.music.IListenSkillHandler;
 
 /**
  * @Class: NewsAction
@@ -8,6 +10,6 @@ import com.jf.anotations.Action;
  * @author: github.com/jackyflame
  * @Date: 2021/7/6
  */
-@Action(actions = {"RECOMMEND","SEARCH"})
-public class NewsAction {
+@Action(skill = IListenSkillHandler.class, actions = {"RECOMMEND", "SEARCH"})
+public class NewsAction implements IActionHandler {
 }

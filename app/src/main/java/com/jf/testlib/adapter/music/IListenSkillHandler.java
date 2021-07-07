@@ -9,6 +9,6 @@ import com.jf.base.AbsSkillHandler;
  * @author: github.com/jackyflame
  * @Date: 2021/7/6
  */
-@Skill(skillName = "音乐")
-public class MusicSkillHandler extends AbsSkillHandler {
+@Skill("音乐")
+public class IListenSkillHandler extends AbsSkillHandler {
 }

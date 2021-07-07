@@ -2,6 +2,7 @@ package com.jf.testlib.adapter;
 
 import android.content.Context;
 
+import com.jf.interfaces.IActionHandler;
 import com.jf.interfaces.ISkillHandler;
 import com.jf.testlib.utils.ClassLoaderUtil;
 
@@ -18,6 +19,7 @@ import java.util.Map;
 public class SkillManager {
 
     private final Map<String, ISkillHandler> skillHandlerMap = new HashMap<>();
+    private final Map<Class<? extends ISkillHandler>, Map<String, IActionHandler>> skillActionCacheMap = new HashMap<>();
 
     private static class SingletonHolder {
         static final SkillManager INSTANCE = new SkillManager();
@@ -29,18 +31,37 @@ public class SkillManager {
 
     public void init(Context context){
         try {
-            String packName =  "com.jf.testlib.adapter";
-            ClassLoaderUtil.getInstance().scanSkillToPool(context,packName,this);
+            ClassLoaderUtil.getInstance().scanSkillToPool(context,"com.jf.testlib.adapter",this);
         } catch (Exception e) {
             e.printStackTrace();
         }
+        System.out.println("SkillManager init success!!");
     }
 
     public void addSkillHandler(String skill, ISkillHandler skillHandler){
+        Map<String, IActionHandler> cacheMap = skillActionCacheMap.get(skillHandler.getClass());
+        if(cacheMap != null && cacheMap.size() > 0){
+            skillHandler.addActionHandler(cacheMap);
+            skillActionCacheMap.remove(skillHandler.getClass());
+        }
         skillHandlerMap.put(skill,skillHandler);
     }
 
-    public ISkillHandler getSkillHandlerByType(Class<? extends ISkillHandler> clz){
+    public void attachActionToSkill(Class<? extends ISkillHandler> skill, String action, IActionHandler newAH){
+        ISkillHandler skillHandler = getSkillHandlerByType(skill);
+        if(skillHandler != null){
+            skillHandler.addActionHandler(action,newAH);
+        }else{
+            Map<String, IActionHandler> cacheMap = skillActionCacheMap.get(skill);
+            if(cacheMap == null){
+                cacheMap = new HashMap<>();
+            }
+            cacheMap.put(action,newAH);
+            skillActionCacheMap.put(skill,cacheMap);
+        }
+    }
+
+    private ISkillHandler getSkillHandlerByType(Class<? extends ISkillHandler> clz){
         Iterator<ISkillHandler> iterator = skillHandlerMap.values().iterator();
         while (iterator.hasNext()){
             ISkillHandler skillHandler = iterator.next();

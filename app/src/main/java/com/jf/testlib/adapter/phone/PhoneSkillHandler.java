@@ -9,7 +9,7 @@ import com.jf.base.AbsSkillHandler;
  * @author: github.com/jackyflame
  * @Date: 2021/7/6
  */
-@Skill(skillName = "电话")
+@Skill("电话")
 public class PhoneSkillHandler extends AbsSkillHandler {
 
 }

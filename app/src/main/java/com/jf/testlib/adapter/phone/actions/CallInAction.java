@@ -1,6 +1,8 @@
 package com.jf.testlib.adapter.phone.actions;
 
 import com.jf.anotations.Action;
+import com.jf.interfaces.IActionHandler;
+import com.jf.testlib.adapter.phone.PhoneSkillHandler;
 
 /**
  * @Class: CallInAction
@@ -8,6 +10,6 @@ import com.jf.anotations.Action;
  * @author: github.com/jackyflame
  * @Date: 2021/7/6
  */
-@Action(actions = {"ACCEPT","DENI"})
-public class CallInAction {
+@Action(skill = PhoneSkillHandler.class, actions = {"ACCEPT", "DENI"})
+public class CallInAction implements IActionHandler {
 }

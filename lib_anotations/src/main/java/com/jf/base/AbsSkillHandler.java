@@ -16,8 +16,18 @@ public class AbsSkillHandler implements ISkillHandler {
 
     Map<String, IActionHandler> handlerMap = new HashMap<>();
 
-    public void addActionHandler(String action,IActionHandler handler) {
+    @Override
+    public void handle(String message) {
+
+    }
+
+    public void addActionHandler(String action, IActionHandler handler) {
         handlerMap.put(action,handler);
+    }
+
+    @Override
+    public void addActionHandler(Map<String, IActionHandler> cacheMap) {
+        handlerMap.putAll(cacheMap);
     }
 
 }

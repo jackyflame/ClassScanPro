@@ -4,7 +4,6 @@ import android.content.Context;
 
 import com.jf.anotations.Action;
 import com.jf.anotations.Skill;
-import com.jf.base.AbsSkillHandler;
 import com.jf.base.EmptyProvider;
 import com.jf.interfaces.IActionHandler;
 import com.jf.interfaces.IProvider;
@@ -13,7 +12,6 @@ import com.jf.testlib.adapter.SkillManager;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -107,40 +105,48 @@ public class ClassLoaderUtil {
         }
     }
 
-    private void instanceSkillHandler(SkillManager skillManager, Class<? extends ISkillHandler> clzSkill) throws Exception {
+    private ISkillHandler instanceSkillHandler(SkillManager skillManager, Class<? extends ISkillHandler> clzSkill) {
         if(clzSkill.isAnnotationPresent(Skill.class)){
             Skill skillAno = clzSkill.getAnnotation(Skill.class);
             System.out.println(">>> Skill-Name:" + skillAno.value() + " from Class:" + clzSkill);
             ISkillHandler newSkill = instanceByGetInstance(clzSkill);
             if(newSkill == null){
-                newSkill = clzSkill.newInstance();
+                try {
+                    newSkill = clzSkill.newInstance();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
-            skillManager.addSkillHandler(skillAno.value(), newSkill);
+            if(newSkill != null){
+                skillManager.addSkillHandler(skillAno.value(), newSkill);
+            }
+            return newSkill;
         }
+       return null;
     }
 
-    private void instanceActionHandler(SkillManager skillManager, Class<? extends IActionHandler> clzAH) throws Exception {
+    private void instanceActionHandler(SkillManager skillManager, Class<? extends IActionHandler> clzAH){
         if(clzAH.isAnnotationPresent(Action.class)){
             Action actionAno = clzAH.getAnnotation(Action.class);
             System.out.println(">>> Action-array from Class:" + clzAH);
             if(actionAno.actions() != null && actionAno.actions().length > 0){
-                ISkillHandler skillHandler = skillManager.getSkillHandlerByType(actionAno.skill());
-                if(skillHandler == null){
-                    return;
-                }
                 IActionHandler newAH = null;
                 if(actionAno.provider() != null && actionAno.provider() != EmptyProvider.class){
                     Class<? extends IProvider> clzProvider = actionAno.provider();
                     newAH = instanceAHByProvider(clzProvider);
                 }else{
-                    newAH = clzAH.newInstance();
+                    try {
+                        newAH = clzAH.newInstance();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
                 if(newAH == null){
                     System.out.println("IActionHandler for " + clzAH + " instance error!");
                     return;
                 }
                 for (String action:actionAno.actions()) {
-                    skillHandler.addActionHandler(action, newAH);
+                    skillManager.attachActionToSkill(actionAno.skill(), action, newAH);
                 }
             }else{
                 System.out.println("empty-actions");

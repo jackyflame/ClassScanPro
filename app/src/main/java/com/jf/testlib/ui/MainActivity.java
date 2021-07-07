@@ -5,6 +5,7 @@ import android.os.Bundle;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 import com.jf.testlib.R;
+import com.jf.testlib.adapter.SkillManager;
 import com.jf.testlib.interfaces.IHandler;
 import com.jf.testlib.utils.ClassLoaderUtil;
 
@@ -30,7 +31,7 @@ public class MainActivity extends AppCompatActivity implements IHandler {
             @Override
             public void onClick(View view) {
                 try {
-                    ClassLoaderUtil.getInstance().searchCLass(MainActivity.this);
+                    SkillManager.getInstance().init(MainActivity.this);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
